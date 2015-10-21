@@ -32,10 +32,11 @@ $('form').submit(function() {
 	});
 
 	// After setting each property, save your new instance back to your database
-	userSong.save();
-	
-	return false //so that page doesn't refresh/reload!
-})
+	userSong.save(null, function() {
+		getData();
+	});
+	return false; //so that page doesn't refresh/reload!
+});
 
 
 
@@ -43,39 +44,56 @@ $('form').submit(function() {
 var getData = function() {
 	
 
-	// Set up a new query for our Music class
-
+	// Set up a new query for our Music class.  Has ability to get info about Music.
+	var query = new Parse.Query(Music);
 
 	// Set a parameter for your query -- where the website property isn't missing
-
+	query.exists('website'); 
 
 	/* Execute the query using ".find".  When successful:
 	    - Pass the returned data into your buildList function
 	*/
+	query.find({ 
+		success:buildList	
+	});
 }
 
 // A function to build your list
 var buildList = function(data) {
+	console.log('buildList()', data);
 	// Empty out your unordered list
-	
+	$('ol').empty();
 	// Loop through your data, and pass each element to the addItem function
-
+	data.forEach(function(d) {
+		addItem(d);
+	});
 }
 
 
 // This function takes in an item, adds it to the screen
 var addItem = function(item) {
 	// Get parameters (website, band, song) from the data item passed to the function
+	var curWebsite = item.get('website');
+	var curBand = item.get('band');
+	var curSong = item.get('bestsong');
 
-	
+	var songInfo = $('<li> Check out ' + curBand + '.  They made the song ' + curSong + ' at their website' + curWebsite + '</li>');
 	// Append li that includes text from the data item
-
+	$('ol').append('songInfo');
 
 	
 	// Time pending, create a button that removes the data item on click
-	
+	var button = $("<button class='btn-xs btn-danger'> </button>");
+	button.on('click',function() {
+		item.destroy({
+			success: getData
+		})
+	})
+
+	songInfo.append(button);
+	$('ol').append(songInfo);
 }
 
 // Call your getData function when the page loads
-
+getData();
 
